@@ -108,7 +108,7 @@
   box-shadow: 0 0 10px rgba(54, 226, 216, 0.5);
 }
 
-/* Cursor personalizado con halo */
+/* Cursor personalizado con halo - mantener cursor nativo visible */
 .custom-cursor {
   position: fixed;
   width: 24px;
@@ -116,10 +116,16 @@
   border-radius: 50%;
   border: 2px solid #36e2d8;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 9998; /* Un nivel por debajo del cursor nativo */
   transform: translate(-50%, -50%);
   transition: transform 0.1s ease;
   box-shadow: 0 0 10px rgba(54, 226, 216, 0.3);
+  opacity: 0.7; /* Hacerlo ligeramente transparente para no interferir */
+}
+
+/* Ocultar cursor nativo cuando el personalizado esté activo */
+body {
+  cursor: none;
 }
 
 /* Excepción para el slider donde queremos el cursor normal */
@@ -127,7 +133,13 @@
   cursor: ew-resize !important;
 }
 
-/* Restaurar cursor en elementos interactivos */
+/* Cursor nativo del navegador permanece visible junto con el halo personalizado */
+/* Excepción para el slider donde queremos el cursor normal */
+.image-slider-line {
+  cursor: ew-resize !important;
+}
+
+/* Mantener cursores normales para elementos interactivos */
 button,
 a,
 input,

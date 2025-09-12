@@ -39,7 +39,7 @@ export default function Logo() {
         <div
           className={`absolute inset-0 rounded-full ${isGlowing ? "bg-cyan-500/30 blur-xl" : ""} transition-all duration-300`}
         ></div>
-        <Image src="/logo-v1tr0-new.svg" alt="V1TR0 Logo" fill className="object-contain p-2" priority />
+        <Image src="/Isotipo_Frame.png" alt="V1TR0 Logo" fill className="object-contain p-2" priority />
       </motion.div>
     </motion.div>
   )

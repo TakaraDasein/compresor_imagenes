@@ -89,6 +89,8 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
   const [showOptimizeAllTooltip, setShowOptimizeAllTooltip] = useState(false)
   const [showDownloadOneTooltip, setShowDownloadOneTooltip] = useState(false)
   const [showDownloadAllTooltip, setShowDownloadAllTooltip] = useState(false)
+  const [showFormatTooltip, setShowFormatTooltip] = useState<string | null>(null)
+  const [showCompressionModeTooltip, setShowCompressionModeTooltip] = useState<string | null>(null)
   const [images, setImages] = useState<ImageItem[]>([])
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null)
   const [options, setOptions] = useState<CompressionOptions>({
@@ -111,6 +113,13 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
       onImagesCountChange(images.length)
     }
   }, [images.length, onImagesCountChange])
+
+  // Cambiar automáticamente a vista de cuadrícula cuando hay múltiples imágenes
+  useEffect(() => {
+    if (images.length > 1 && carouselView === "list") {
+      setCarouselView("grid")
+    }
+  }, [images.length, carouselView])
 
   const calculatedStats = useMemo(() => {
     const optimizedImages = images.filter((img) => img.optimized && img.optimizedSize)
@@ -590,8 +599,8 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setCarouselView((prev) => (prev === "list" ? "grid" : "list"))}
-                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-md"
-                    title={carouselView === "list" ? "Grid" : "Lista"}
+                    className="p-2 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:to-cyan-600/30 text-cyan-400 hover:text-cyan-300 rounded-md border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-200"
+                    title={carouselView === "list" ? "Cambiar a vista de cuadrícula" : "Cambiar a vista de lista"}
                   >
                     {carouselView === "list" ? <Grid3x3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
                   </motion.button>
@@ -611,8 +620,8 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-full"
-                  title="Añadir más"
+                  className="p-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white rounded-full shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+                  title="Añadir más imágenes"
                 >
                   <Plus className="w-5 h-5" />
                 </motion.button>
@@ -628,8 +637,8 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleClearAllImages}
-                  className="p-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-full"
-                  title="Limpiar todo"
+                  className="p-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full shadow-lg hover:shadow-red-500/25 transition-all duration-200"
+                  title="Eliminar todas las imágenes"
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -664,28 +673,94 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
               </div>
               <div className="flex flex-col sm:flex-row gap-2 justify-center items-center flex-wrap">
                 <div className="flex gap-2">
-                  <StyledButton
-                    onClick={() => setCompressionSettings("enhanced")}
-                    selected={compressionMode === "enhanced"}
-                    responsiveText
+                  <motion.div
+                    className="relative"
+                    onMouseEnter={() => setShowCompressionModeTooltip("balanced")}
+                    onMouseLeave={() => setShowCompressionModeTooltip(null)}
                   >
-                    <span className="hidden xl:inline font-mono">Mejorado</span>
-                  </StyledButton>
-                  <StyledButton
-                    onClick={() => setCompressionSettings("balanced")}
-                    selected={compressionMode === "balanced"}
-                    responsiveText
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCompressionSettings("balanced")}
+                      className={`px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:to-cyan-600/30 text-cyan-400 hover:text-cyan-300 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-200 font-mono text-sm ${compressionMode === "balanced" ? "ring-2 ring-cyan-500/50 shadow-lg shadow-cyan-500/20" : ""}`}
+                    >
+                      <span className="hidden xl:inline">Equilibrado</span>
+                      <span className="xl:hidden">E</span>
+                    </motion.button>
+                    <AnimatePresence>
+                      {showCompressionModeTooltip === "balanced" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-md shadow-lg whitespace-nowrap z-50`}
+                          style={{ backgroundColor: colors.secondary }}
+                        >
+                          Compresión equilibrada: alta calidad visual
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                  <motion.div
+                    className="relative"
+                    onMouseEnter={() => setShowCompressionModeTooltip("enhanced")}
+                    onMouseLeave={() => setShowCompressionModeTooltip(null)}
                   >
-                    <span className="hidden xl:inline font-mono">Equilibrado</span>
-                  </StyledButton>
-                  <StyledButton
-                    onClick={() => setCompressionSettings("maximum")}
-                    selected={compressionMode === "maximum"}
-                    icon={<Zap className="w-4 h-4" />}
-                    responsiveText
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCompressionSettings("enhanced")}
+                      className={`px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:to-cyan-600/30 text-cyan-400 hover:text-cyan-300 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-200 font-mono text-sm ${compressionMode === "enhanced" ? "ring-2 ring-cyan-500/50 shadow-lg shadow-cyan-500/20" : ""}`}
+                    >
+                      <span className="hidden xl:inline">Mejorado</span>
+                      <span className="xl:hidden">M</span>
+                    </motion.button>
+                    <AnimatePresence>
+                      {showCompressionModeTooltip === "enhanced" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-md shadow-lg whitespace-nowrap z-50`}
+                          style={{ backgroundColor: colors.secondary }}
+                        >
+                          Compresión mejorada: buen equilibrio entre calidad y tamaño
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                  <motion.div
+                    className="relative"
+                    onMouseEnter={() => setShowCompressionModeTooltip("maximum")}
+                    onMouseLeave={() => setShowCompressionModeTooltip(null)}
                   >
-                    <span className="hidden xl:inline font-mono">Máxima</span>
-                  </StyledButton>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCompressionSettings("maximum")}
+                      className={`px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:to-cyan-600/30 text-cyan-400 hover:text-cyan-300 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-200 font-mono text-sm flex items-center gap-2 ${compressionMode === "maximum" ? "ring-2 ring-cyan-500/50 shadow-lg shadow-cyan-500/20" : ""}`}
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span className="hidden xl:inline">Máxima</span>
+                      <span className="xl:hidden">Max</span>
+                    </motion.button>
+                    <AnimatePresence>
+                      {showCompressionModeTooltip === "maximum" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-md shadow-lg whitespace-nowrap z-50`}
+                          style={{ backgroundColor: colors.secondary }}
+                        >
+                          Compresión máxima: reducción máxima de tamaño
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 </div>
                 <div className="flex gap-2">
                   <motion.div
@@ -693,15 +768,28 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                     onMouseEnter={() => setShowOptimizeOneTooltip(true)}
                     onMouseLeave={() => setShowOptimizeOneTooltip(false)}
                   >
-                    <StyledButton
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => selectedImage && handleOptimize(selectedImage)}
                       disabled={!selectedImage || selectedImage.isOptimizing}
-                      isLoading={selectedImage?.isOptimizing}
-                      icon={<PlayIcon className="h-4 w-5" />}
-                      variant="primary"
-                      aria-label={selectedImage?.isOptimizing ? "Optimizando imagen" : "Optimizar imagen"}
-                      className="p-3"
-                    />
+                      className={`px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/20 hover:from-green-500/30 hover:to-green-600/30 text-green-400 hover:text-green-300 rounded-lg border border-green-500/30 hover:border-green-500/50 transition-all duration-200 font-mono text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${selectedImage?.isOptimizing ? "ring-2 ring-green-500/50 shadow-lg shadow-green-500/20" : ""}`}
+                    >
+                      {selectedImage?.isOptimizing ? (
+                        <svg className="animate-spin h-4 w-4 text-green-400" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        <PlayIcon className="h-4 w-4" />
+                      )}
+                      <span className="hidden xl:inline">Optimizar</span>
+                      <span className="xl:hidden">Opt</span>
+                    </motion.button>
                     <AnimatePresence>
                       {showOptimizeOneTooltip && (
                         <motion.div
@@ -722,19 +810,28 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                     onMouseEnter={() => setShowOptimizeAllTooltip(true)}
                     onMouseLeave={() => setShowOptimizeAllTooltip(false)}
                   >
-                    <StyledButton
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={handleBatchOptimize}
                       disabled={images.length === 0 || images.some((img) => img.isOptimizing)}
-                      isLoading={images.some((img) => img.isOptimizing)}
-                      icon={<FolderTreeIcon className="w-4 h-4" />}
-                      variant="secondary"
-                      aria-label={
-                        images.some((img) => img.isOptimizing)
-                          ? "Optimizando todas las imágenes"
-                          : "Optimizar todas las imágenes"
-                      }
-                      className="p-3"
-                    />
+                      className={`px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/20 hover:from-green-500/30 hover:to-green-600/30 text-green-400 hover:text-green-300 rounded-lg border border-green-500/30 hover:border-green-500/50 transition-all duration-200 font-mono text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${images.some((img) => img.isOptimizing) ? "ring-2 ring-green-500/50 shadow-lg shadow-green-500/20" : ""}`}
+                    >
+                      {images.some((img) => img.isOptimizing) ? (
+                        <svg className="animate-spin h-4 w-4 text-green-400" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        <FolderTreeIcon className="w-4 h-4" />
+                      )}
+                      <span className="hidden xl:inline">Todas</span>
+                      <span className="xl:hidden">All</span>
+                    </motion.button>
                     <AnimatePresence>
                       {showOptimizeAllTooltip && (
                         <motion.div
@@ -786,15 +883,28 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
                         onMouseEnter={() => setShowDownloadAllTooltip(true)}
                         onMouseLeave={() => setShowDownloadAllTooltip(false)}
                       >
-                        <StyledButton
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={handleDownloadAllAsZip}
                           disabled={isDownloadingZip}
-                          isLoading={isDownloadingZip}
-                          icon={<FileDownIcon className="w-4 h-4" />}
-                          variant="success"
-                          aria-label={isDownloadingZip ? "Preparando ZIP" : "Descargar todo como ZIP"}
-                          className="p-3"
-                        />
+                          className={`px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/20 hover:from-green-500/30 hover:to-green-600/30 text-green-400 hover:text-green-300 rounded-lg border border-green-500/30 hover:border-green-500/50 transition-all duration-200 font-mono text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isDownloadingZip ? "ring-2 ring-green-500/50 shadow-lg shadow-green-500/20" : ""}`}
+                        >
+                          {isDownloadingZip ? (
+                            <svg className="animate-spin h-4 w-4 text-green-400" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          ) : (
+                            <FileDownIcon className="w-4 h-4" />
+                          )}
+                          <span className="hidden xl:inline">ZIP</span>
+                          <span className="xl:hidden">ZIP</span>
+                        </motion.button>
                         <AnimatePresence>
                           {showDownloadAllTooltip && (
                             <motion.div
@@ -819,15 +929,41 @@ export default function ImageCompressorLocal({ onImagesCountChange }: ImageCompr
               <div className="hidden xl:inline text-teal-500 font-mono">Formato</div>
               <div className="flex gap-2 font-mono leading-9 tracking-widest flex-col items-center justify-between my-5 mx-9 py-1.5 px-2 gap-x-2.5 gap-y-2.5">
                 {availableFormats.map((format) => (
-                  <StyledButton
+                  <motion.div
                     key={format}
-                    onClick={() => changeOutputFormat(format)}
-                    variant="format"
-                    selected={options.outputFormat === format}
-                    className="px-2 py-3 text-xs min-w-0"
+                    className="relative"
+                    onMouseEnter={() => setShowFormatTooltip(format)}
+                    onMouseLeave={() => setShowFormatTooltip(null)}
                   >
-                    {format.toUpperCase()}
-                  </StyledButton>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => changeOutputFormat(format)}
+                      className={`px-2 py-3 text-xs min-w-0 font-mono rounded-lg border transition-all duration-200 ${
+                        options.outputFormat === format
+                          ? "bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 text-cyan-400 border-cyan-500/50 shadow-lg shadow-cyan-500/20"
+                          : "bg-gradient-to-r from-slate-500/10 to-slate-600/10 text-slate-400 border-slate-500/30 hover:border-slate-500/50 hover:text-slate-300"
+                      }`}
+                    >
+                      {format.toUpperCase()}
+                    </motion.button>
+                    <AnimatePresence>
+                      {showFormatTooltip === format && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          className={`absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-md shadow-lg whitespace-nowrap z-50`}
+                          style={{ backgroundColor: colors.secondary }}
+                        >
+                          {format === "auto"
+                            ? "Mantener formato original"
+                            : `Convertir a ${format.toUpperCase()}`}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 ))}
               </div>
             </div>
