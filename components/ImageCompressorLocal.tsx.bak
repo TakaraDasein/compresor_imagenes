@@ -1,0 +1,2 @@
+// Re-export desde la nueva ubicación para mantener compatibilidad
+export { default } from '@/components/tools/compression/ImageCompressorLocal'

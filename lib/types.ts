@@ -38,3 +38,49 @@ export type OptimizationStats = {
   imagesOptimized: number
   successRate: number
 }
+
+// ============================================
+// NUEVOS TIPOS - ARQUITECTURA DE HERRAMIENTAS
+// ============================================
+
+export type Tool = 'compression' | 'conversion'
+
+export type ImageFormat = 'png' | 'jpg' | 'jpeg' | 'webp' | 'ico' | 'avif' | 'bmp'
+
+export interface FormatConfig {
+  id: ImageFormat
+  name: string
+  extension: string
+  mimeType: string
+  description: string
+  supportsTransparency: boolean
+}
+
+export interface ToolConfig {
+  id: Tool
+  name: string
+  description: string
+  icon: string // Nombre del icono de lucide-react
+  component: string // Nombre del componente
+  enabled: boolean
+}
+
+export interface ConversionOptions {
+  quality?: number
+  width?: number
+  height?: number
+  preserveMetadata?: boolean
+}
+
+export interface ConversionResult {
+  blob: Blob
+  url: string
+  originalSize: number
+  convertedSize: number
+  originalFormat: ImageFormat
+  targetFormat: ImageFormat
+  width: number
+  height: number
+  processingTime: number
+  compressionRatio: string
+}
