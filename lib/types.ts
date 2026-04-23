@@ -57,12 +57,17 @@ export interface FormatConfig {
 }
 
 export interface ToolConfig {
-  id: Tool
+  id: string
+  slug: string // URL slug para routing
   name: string
   description: string
+  longDescription?: string
   icon: string // Nombre del icono de lucide-react
   component: string // Nombre del componente
   enabled: boolean
+  category: 'image' | 'video' | 'audio' | 'document' | 'utility'
+  featured?: boolean
+  tags?: string[]
 }
 
 export interface ConversionOptions {

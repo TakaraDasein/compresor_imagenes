@@ -401,7 +401,7 @@ export default function ImageConverter() {
   const totalSavings = totalOriginalSize > 0 ? ((1 - totalConvertedSize / totalOriginalSize) * 100).toFixed(1) : "0"
 
   return (
-    <div className="container mx-auto max-w-7xl space-y-8 p-4 md:p-6 relative">
+    <div className="relative min-h-screen">
       {/* Notification Bell */}
       <div className="fixed top-4 right-4 z-50">
         <NotificationBell />
@@ -412,7 +412,7 @@ export default function ImageConverter() {
         variants={slideDownVariants}
         initial="hidden"
         animate="visible"
-        className="text-center"
+        className="text-center p-4 md:p-6"
       >
         <h1 className="text-4xl font-bold text-white md:text-5xl">
           Convertidor de <span className="text-[#36e2d8]">Formatos</span>
@@ -422,97 +422,10 @@ export default function ImageConverter() {
         </p>
       </motion.div>
 
-      {/* Format Selector */}
-      <motion.div
-        variants={slideUpVariants}
-        initial="hidden"
-        animate="visible"
-        className="rounded-2xl bg-slate-800/50 p-6 backdrop-blur-sm"
-        role="region"
-        aria-label="Selector de formato de salida"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <ArrowRightLeft className="h-6 w-6 text-[#36e2d8]" aria-hidden="true" />
-          <h2 id="format-selector-heading" className="text-xl font-semibold text-white">Formato de Salida</h2>
-        </div>
-
-        <div 
-          className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6"
-          role="group"
-          aria-labelledby="format-selector-heading"
-        >
-          {FORMATS.map((format) => (
-            <motion.button
-              key={format.value}
-              onClick={() => setTargetFormat(format.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  setTargetFormat(format.value)
-                }
-              }}
-              variants={buttonHoverVariants}
-              initial="initial"
-              whileHover="hover"
-              whileTap="tap"
-              className={`
-                rounded-xl p-4 text-center transition-all focus:outline-none focus:ring-2 focus:ring-[#36e2d8] focus:ring-offset-2 focus:ring-offset-slate-900
-                ${
-                  targetFormat === format.value
-                    ? "bg-[#36e2d8] text-slate-900 shadow-lg shadow-[#36e2d8]/20"
-                    : "bg-slate-700/50 text-slate-200 hover:bg-slate-700"
-                }
-              `}
-              aria-pressed={targetFormat === format.value}
-              aria-label={`Convertir a formato ${format.label}. ${format.description}`}
-              type="button"
-            >
-              <div className="text-2xl font-bold" aria-hidden="true">{format.label}</div>
-              <div className="mt-1 text-xs opacity-80" aria-hidden="true">{format.description}</div>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Quality Slider */}
-        {!["png", "bmp", "ico"].includes(targetFormat) && (
-          <div className="mt-6" role="region" aria-label="Control de calidad de conversión">
-            <div className="flex items-center justify-between mb-2">
-              <label 
-                htmlFor="quality-slider" 
-                className="text-sm font-medium text-slate-300"
-              >
-                Calidad: {quality}%
-              </label>
-            </div>
-            <input
-              id="quality-slider"
-              type="range"
-              min="1"
-              max="100"
-              value={quality}
-              onChange={(e) => setQuality(Number(e.target.value))}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-                  e.preventDefault()
-                  setQuality(Math.max(1, quality - 5))
-                } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-                  e.preventDefault()
-                  setQuality(Math.min(100, quality + 5))
-                }
-              }}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#36e2d8] focus:outline-none focus:ring-2 focus:ring-[#36e2d8] focus:ring-offset-2 focus:ring-offset-slate-900"
-              aria-valuemin={1}
-              aria-valuemax={100}
-              aria-valuenow={quality}
-              aria-label={`Calidad de conversión: ${quality}%. Use las flechas para ajustar de 5 en 5.`}
-            />
-            <div className="flex justify-between text-xs text-slate-400 mt-1">
-              <span>Más compresión</span>
-              <span>Mayor calidad</span>
-            </div>
-          </div>
-        )}
-      </motion.div>
+      {/* Main Layout - Two Columns */}
+      <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-6">
+        {/* Left Column - Main Content */}
+        <div className="flex-1 space-y-8 lg:pr-6">
 
       {/* Upload Zone or Images Grid */}
       <AnimatePresence mode="wait">
@@ -641,7 +554,7 @@ export default function ImageConverter() {
 
             {/* Images Grid */}
             <motion.div 
-              className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-4 md:grid-cols-2"
               role="list"
               aria-label="Lista de imágenes para convertir"
               variants={staggerContainerVariants}
@@ -824,6 +737,100 @@ export default function ImageConverter() {
           </motion.div>
         )}
       </AnimatePresence>
+        </div>
+
+        {/* Right Column - Format Selector Panel (Fixed on Desktop) */}
+        <motion.div
+          variants={slideUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full lg:w-96 lg:sticky lg:top-6 lg:self-start"
+        >
+          <div className="rounded-2xl bg-slate-800/50 p-6 backdrop-blur-sm border border-slate-700/50">
+            <div className="flex items-center gap-3 mb-6">
+              <ArrowRightLeft className="h-6 w-6 text-[#36e2d8]" aria-hidden="true" />
+              <h2 id="format-selector-heading" className="text-xl font-semibold text-white">Formato de Salida</h2>
+            </div>
+
+            <div 
+              className="grid grid-cols-2 gap-3"
+              role="group"
+              aria-labelledby="format-selector-heading"
+            >
+              {FORMATS.map((format) => (
+                <motion.button
+                  key={format.value}
+                  onClick={() => setTargetFormat(format.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setTargetFormat(format.value)
+                    }
+                  }}
+                  variants={buttonHoverVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
+                  className={`
+                    rounded-xl p-4 text-center transition-all focus:outline-none focus:ring-2 focus:ring-[#36e2d8] focus:ring-offset-2 focus:ring-offset-slate-900
+                    ${
+                      targetFormat === format.value
+                        ? "bg-[#36e2d8] text-slate-900 shadow-lg shadow-[#36e2d8]/20"
+                        : "bg-slate-700/50 text-slate-200 hover:bg-slate-700"
+                    }
+                  `}
+                  aria-pressed={targetFormat === format.value}
+                  aria-label={`Convertir a formato ${format.label}. ${format.description}`}
+                  type="button"
+                >
+                  <div className="text-xl font-bold" aria-hidden="true">{format.label}</div>
+                  <div className="mt-1 text-xs opacity-80 line-clamp-2" aria-hidden="true">{format.description}</div>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Quality Slider */}
+            {!["png", "bmp", "ico"].includes(targetFormat) && (
+              <div className="mt-6" role="region" aria-label="Control de calidad de conversión">
+                <div className="flex items-center justify-between mb-2">
+                  <label 
+                    htmlFor="quality-slider" 
+                    className="text-sm font-medium text-slate-300"
+                  >
+                    Calidad: {quality}%
+                  </label>
+                </div>
+                <input
+                  id="quality-slider"
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={quality}
+                  onChange={(e) => setQuality(Number(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+                      e.preventDefault()
+                      setQuality(Math.max(1, quality - 5))
+                    } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+                      e.preventDefault()
+                      setQuality(Math.min(100, quality + 5))
+                    }
+                  }}
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#36e2d8] focus:outline-none focus:ring-2 focus:ring-[#36e2d8] focus:ring-offset-2 focus:ring-offset-slate-900"
+                  aria-valuemin={1}
+                  aria-valuemax={100}
+                  aria-valuenow={quality}
+                  aria-label={`Calidad de conversión: ${quality}%. Use las flechas para ajustar de 5 en 5.`}
+                />
+                <div className="flex justify-between text-xs text-slate-400 mt-1">
+                  <span>Más compresión</span>
+                  <span>Mayor calidad</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
