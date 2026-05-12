@@ -8,10 +8,31 @@ import { Zap, Layers, Sparkles } from "lucide-react"
 
 type AnimationMode = 'idle' | 'compress' | 'convert' | 'sparkle'
 
+// Generar posiciones consistentes para las partículas
+const generateParticles = () => {
+  return Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    left: (i * 37 + 23) % 100, // Genera números pseudo-aleatorios pero consistentes
+    top: (i * 53 + 17) % 100,
+    duration: 3 + (i % 5),
+    delay: i % 5,
+    yOffset: -50 - (i % 3) * 25,
+    xOffset: -10 + (i % 3) * 10,
+  }))
+}
+
+const PARTICLES = generateParticles()
+
 export default function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [animationMode, setAnimationMode] = useState<AnimationMode>('idle')
+  const [isMounted, setIsMounted] = useState(false)
   const logoRef = useRef<HTMLDivElement>(null)
+
+  // Detectar cuando el componente está montado en el cliente
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Motion values para animación suave
   const mouseX = useMotionValue(0)
@@ -525,30 +546,32 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* Partículas flotantes de fondo */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-[#36e2d8]/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, Math.random() * -100 - 50, 0],
-              x: [0, Math.random() * 40 - 20, 0],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 5 + 3,
-              repeat: Number.POSITIVE_INFINITY,
-              delay: Math.random() * 5,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-      </div>
+      {/* Partículas flotantes de fondo - Solo renderizar en cliente */}
+      {isMounted && (
+        <div className="absolute inset-0 pointer-events-none">
+          {PARTICLES.map((particle) => (
+            <motion.div
+              key={particle.id}
+              className="absolute w-1 h-1 bg-[#36e2d8]/30 rounded-full"
+              style={{
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+              }}
+              animate={{
+                y: [0, particle.yOffset, 0],
+                x: [0, particle.xOffset, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Number.POSITIVE_INFINITY,
+                delay: particle.delay,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }
