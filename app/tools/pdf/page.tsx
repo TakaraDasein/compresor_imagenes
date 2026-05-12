@@ -16,7 +16,7 @@ export default function PDFToolsPage() {
       description: "Reduce el tamaño de tus PDFs sin perder calidad",
       color: "#36e2d8",
       href: "/tools/pdf/compress",
-      status: "En desarrollo",
+      status: "Disponible",
     },
     {
       id: "convert-to-pdf",
@@ -43,7 +43,7 @@ export default function PDFToolsPage() {
       description: "Combina múltiples PDFs en uno solo",
       color: "#36e2d8",
       href: "/tools/pdf/merge",
-      status: "Próximamente",
+      status: "En desarrollo",
     },
   ]
 
@@ -83,9 +83,11 @@ export default function PDFToolsPage() {
                   {tool.status && (
                     <div className="absolute top-4 right-4">
                       <span className={`text-xs font-mono px-3 py-1 rounded-full ${
-                        tool.status === "En desarrollo" 
-                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                          : "bg-slate-700/50 text-slate-400 border border-slate-600/30"
+                        tool.status === "Disponible"
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : tool.status === "En desarrollo" 
+                            ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            : "bg-slate-700/50 text-slate-400 border border-slate-600/30"
                       }`}>
                         {tool.status}
                       </span>
