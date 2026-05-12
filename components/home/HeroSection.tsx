@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
-import { Zap, Layers, Settings } from "lucide-react"
+import { Zap, Layers, Sparkles } from "lucide-react"
+
+type AnimationMode = 'idle' | 'compress' | 'convert' | 'sparkle'
 
 export default function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [animationMode, setAnimationMode] = useState<AnimationMode>('idle')
   const logoRef = useRef<HTMLDivElement>(null)
 
   // Motion values para animación suave
@@ -50,26 +53,79 @@ export default function HeroSection() {
     }
   }, [mouseX, mouseY])
 
+  // Animaciones específicas según el modo
+  const getLogoAnimation = () => {
+    switch (animationMode) {
+      case 'compress':
+        // Animación de compresión: se achica y expande
+        return {
+          scale: [1, 0.7, 1.1, 1],
+          rotateZ: [0, -10, 10, 0],
+          transition: { duration: 0.8, ease: "easeInOut" }
+        }
+      case 'convert':
+        // Animación de conversión: gira y cambia forma
+        return {
+          rotateY: [0, 180, 360],
+          scale: [1, 1.2, 1],
+          transition: { duration: 1.2, ease: "easeInOut" }
+        }
+      case 'sparkle':
+        // Animación de brillo: pulsa y brilla
+        return {
+          scale: [1, 1.3, 1],
+          rotateZ: [0, 360],
+          filter: [
+            "brightness(1) saturate(1)",
+            "brightness(1.5) saturate(1.5)",
+            "brightness(1) saturate(1)"
+          ],
+          transition: { duration: 1, ease: "easeOut" }
+        }
+      default:
+        // Animación idle suave
+        return {
+          rotateZ: [0, 2, -2, 0],
+          transition: {
+            duration: 6,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+          }
+        }
+    }
+  }
+
   const buttons = [
     {
       icon: Zap,
-      label: "Compresor",
+      label: "Comprimir",
       href: "/tools/compressor",
       color: "#36e2d8",
+      mode: 'compress' as AnimationMode,
     },
     {
       icon: Layers,
-      label: "Convertidor",
+      label: "Convertir",
       href: "/tools/converter",
       color: "#36e2d8",
+      mode: 'convert' as AnimationMode,
     },
     {
-      icon: Settings,
-      label: "Herramientas",
+      icon: Sparkles,
+      label: "Efectos",
       href: "/tools",
       color: "#36e2d8",
+      mode: 'sparkle' as AnimationMode,
     },
   ]
+
+  const handleButtonClick = (mode: AnimationMode) => {
+    setAnimationMode(mode)
+    // Volver a idle después de la animación
+    setTimeout(() => {
+      setAnimationMode('idle')
+    }, 1500)
+  }
 
   return (
     <section className="min-h-screen flex items-center justify-center relative z-10 overflow-hidden">
@@ -137,29 +193,23 @@ export default function HeroSection() {
             }}
           />
 
-          {/* Logo principal - capa frontal con animación viva */}
+          {/* Logo principal - capa frontal con animación viva y dinámica */}
           <motion.div
             className="absolute inset-0"
             style={{
               translateZ: 50,
             }}
-            animate={{
-              rotateZ: [0, 2, -2, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            }}
+            animate={getLogoAnimation()}
+            key={animationMode} // Re-trigger animation on mode change
           >
             <motion.div 
               className="relative w-full h-full"
-              animate={{
+              animate={animationMode === 'idle' ? {
                 scale: [1, 1.05, 1],
-              }}
+              } : {}}
               transition={{
                 duration: 3,
-                repeat: Number.POSITIVE_INFINITY,
+                repeat: animationMode === 'idle' ? Number.POSITIVE_INFINITY : 0,
                 ease: "easeInOut",
               }}
             >
@@ -170,11 +220,86 @@ export default function HeroSection() {
                 className="object-contain"
                 priority
                 style={{
-                  filter: "drop-shadow(0 0 60px rgba(54, 226, 216, 0.4)) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5))",
+                  filter: animationMode === 'sparkle' 
+                    ? "drop-shadow(0 0 80px rgba(54, 226, 216, 0.8)) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5))"
+                    : "drop-shadow(0 0 60px rgba(54, 226, 216, 0.4)) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5))",
                 }}
               />
             </motion.div>
           </motion.div>
+
+          {/* Efectos especiales según el modo de animación */}
+          <AnimatePresence>
+            {animationMode === 'compress' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 1.5 }}
+                animate={{ opacity: [0, 1, 0], scale: [1.5, 0.5, 0.3] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0"
+                style={{ translateZ: 100 }}
+              >
+                <div className="absolute inset-0 border-4 border-[#36e2d8] rounded-lg" />
+              </motion.div>
+            )}
+            
+            {animationMode === 'convert' && (
+              <>
+                {[...Array(8)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0, rotate: i * 45 }}
+                    animate={{ 
+                      opacity: [0, 1, 0], 
+                      scale: [0, 1.5, 2],
+                      rotate: i * 45 + 180
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.2, delay: i * 0.1 }}
+                    className="absolute inset-0"
+                    style={{ translateZ: 80 + i * 5 }}
+                  >
+                    <div 
+                      className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#36e2d8] rounded-full blur-sm"
+                      style={{
+                        transform: `translate(-50%, -50%) translateY(-${50 + i * 10}px)`
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </>
+            )}
+
+            {animationMode === 'sparkle' && (
+              <>
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ 
+                      opacity: [0, 1, 1, 0], 
+                      scale: [0, 1, 1.5, 0],
+                      rotate: [0, 180, 360],
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{ 
+                      duration: 1, 
+                      delay: i * 0.05,
+                      ease: "easeOut"
+                    }}
+                    className="absolute"
+                    style={{ 
+                      translateZ: 90,
+                      left: `${50 + Math.cos(i * 30 * Math.PI / 180) * 40}%`,
+                      top: `${50 + Math.sin(i * 30 * Math.PI / 180) * 40}%`,
+                    }}
+                  >
+                    <div className="w-3 h-3 bg-white rounded-full blur-sm" />
+                  </motion.div>
+                ))}
+              </>
+            )}
+          </AnimatePresence>
 
           {/* Highlights brillantes - capa más frontal con animación fluida */}
           <motion.div
@@ -274,46 +399,96 @@ export default function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 + index * 0.1, duration: 0.6 }}
           >
-            <Link href={button.href}>
+            <Link href={button.href} onClick={(e) => {
+              e.preventDefault()
+              handleButtonClick(button.mode)
+              // Navegar después de la animación
+              setTimeout(() => {
+                window.location.href = button.href
+              }, 1500)
+            }}>
               <motion.button
                 className="group relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {/* Double Stroke - Exterior */}
-                <div className="absolute inset-0 border-2 border-[#36e2d8]/30 rounded-lg transform rotate-0 transition-all duration-300 group-hover:rotate-3 group-hover:border-[#36e2d8]/60" />
+                <motion.div 
+                  className="absolute inset-0 border-2 border-[#36e2d8]/30 rounded-lg transition-all duration-300 group-hover:border-[#36e2d8]/60"
+                  animate={animationMode === button.mode ? {
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1],
+                  } : {}}
+                  transition={{ duration: 0.5 }}
+                />
                 
                 {/* Double Stroke - Interior */}
-                <div className="absolute inset-1 border border-[#36e2d8]/50 rounded-lg transform rotate-0 transition-all duration-300 group-hover:-rotate-3 group-hover:border-[#36e2d8]/80" />
+                <motion.div 
+                  className="absolute inset-1 border border-[#36e2d8]/50 rounded-lg transition-all duration-300 group-hover:border-[#36e2d8]/80"
+                  animate={animationMode === button.mode ? {
+                    rotate: [0, -10, 10, 0],
+                    scale: [1, 0.95, 1],
+                  } : {}}
+                  transition={{ duration: 0.5 }}
+                />
                 
                 {/* Glow effect */}
                 <motion.div
                   className="absolute inset-0 bg-[#36e2d8]/0 rounded-lg blur-md transition-all duration-300 group-hover:bg-[#36e2d8]/20"
-                  animate={{
+                  animate={animationMode === button.mode ? {
+                    opacity: [0.5, 1, 0.5],
+                    scale: [1, 1.3, 1],
+                  } : {
                     opacity: [0.5, 1, 0.5],
                   }}
                   transition={{
-                    duration: 2,
-                    repeat: Number.POSITIVE_INFINITY,
+                    duration: animationMode === button.mode ? 0.8 : 2,
+                    repeat: animationMode === button.mode ? 0 : Number.POSITIVE_INFINITY,
                     ease: "easeInOut",
                     delay: index * 0.3,
                   }}
                 />
 
                 {/* Background */}
-                <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm rounded-lg transition-all duration-300 group-hover:bg-slate-800/90" />
+                <motion.div 
+                  className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm rounded-lg transition-all duration-300 group-hover:bg-slate-800/90"
+                  animate={animationMode === button.mode ? {
+                    backgroundColor: ["rgba(15, 23, 42, 0.8)", "rgba(54, 226, 216, 0.2)", "rgba(15, 23, 42, 0.8)"],
+                  } : {}}
+                  transition={{ duration: 0.8 }}
+                />
 
                 {/* Icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <button.icon 
-                    className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-[#36e2d8] transition-all duration-300 group-hover:text-white group-hover:scale-110"
-                    strokeWidth={1.5}
-                  />
+                  <motion.div
+                    animate={animationMode === button.mode ? {
+                      scale: [1, 1.3, 1],
+                      rotate: [0, 360],
+                    } : {}}
+                    transition={{ duration: 0.8 }}
+                  >
+                    <button.icon 
+                      className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-[#36e2d8] transition-all duration-300 group-hover:text-white group-hover:scale-110"
+                      strokeWidth={1.5}
+                    />
+                  </motion.div>
                 </div>
 
                 {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#36e2d8] rounded-tl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-[#36e2d8] rounded-br-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <motion.div 
+                  className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#36e2d8] rounded-tl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={animationMode === button.mode ? {
+                    opacity: [0, 1, 1, 0],
+                  } : {}}
+                  transition={{ duration: 0.8 }}
+                />
+                <motion.div 
+                  className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-[#36e2d8] rounded-br-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={animationMode === button.mode ? {
+                    opacity: [0, 1, 1, 0],
+                  } : {}}
+                  transition={{ duration: 0.8 }}
+                />
 
                 {/* Scan line effect */}
                 <motion.div
@@ -322,12 +497,14 @@ export default function HeroSection() {
                 >
                   <motion.div
                     className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-[#36e2d8]/50 to-transparent"
-                    animate={{
+                    animate={animationMode === button.mode ? {
+                      y: [-20, 100, -20],
+                    } : {
                       y: [-20, 100],
                     }}
                     transition={{
-                      duration: 2,
-                      repeat: Number.POSITIVE_INFINITY,
+                      duration: animationMode === button.mode ? 0.8 : 2,
+                      repeat: animationMode === button.mode ? 0 : Number.POSITIVE_INFINITY,
                       ease: "linear",
                       delay: index * 0.4,
                     }}
