@@ -133,8 +133,8 @@ export default function HeroSection() {
     },
     {
       icon: Sparkles,
-      label: "Efectos",
-      href: "/tools",
+      label: "PDF Tools",
+      href: "/tools/pdf",
       color: "#36e2d8",
       mode: 'sparkle' as AnimationMode,
     },
